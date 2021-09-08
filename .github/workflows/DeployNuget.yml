@@ -1,0 +1,21 @@
+name: Deploy nuget package
+
+on:
+  push:
+    tags: "*"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Create the package
+      run: dotnet pack --include-symbols --include-source --configuration Release src/Seq.App.Telegram/Seq.App.Telegram.csproj /p:Version=${GITHUB_REF#refs/tags/}
+    - name: Publish the package to GPR
+      run: dotnet nuget push src/Seq.App.Telegram/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_TOCKEN }}
